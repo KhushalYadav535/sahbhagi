@@ -206,6 +206,7 @@ export default function EventPage() {
   };
 
   const handleSummarizeQnA = async () => {
+    if (!event || !event.questions) return;
     try {
       setIsSummarizing(true);
       const responses = event.questions.map((q: any) => q.text);
