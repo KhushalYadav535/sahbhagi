@@ -1,0 +1,16 @@
+{
+  "welcome": "Welcome to Sahbhagi",
+  "joinEvent": "Join Event",
+  "enterCode": "Enter event code",
+  "join": "Join",
+  "askQuestion": "Ask a question",
+  "submit": "Submit",
+  "anonymous": "Anonymous",
+  "pollActive": "Active Poll",
+  "noActivePoll": "No active polls right now. Waiting for the host.",
+  "selectLanguage": "Language",
+  "questions": "Q&A",
+  "polls": "Polls",
+  "typeHere": "Type your answer here...",
+  "upvote": "Upvote"
+}
