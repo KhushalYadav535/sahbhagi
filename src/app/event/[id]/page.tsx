@@ -42,6 +42,7 @@ interface Poll {
   options: string[];
   responses: any[];
   isActive: boolean;
+  correctAnswer?: string;
 }
 
 interface Question {
@@ -62,6 +63,7 @@ interface Event {
   language: string;
   polls: Poll[];
   questions: Question[];
+  date?: string;
 }
 
 
@@ -226,6 +228,7 @@ export default function EventPage() {
   };
 
   const handleGetInsight = async () => {
+    if (!event || !event.polls || !event.questions) return;
     try {
       setIsGettingInsight(true);
       const res = await api.post("/ai/recommend-interaction", {
