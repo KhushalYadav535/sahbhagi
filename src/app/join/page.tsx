@@ -6,11 +6,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
-import { ArrowRight, Search } from 'lucide-react';
+import { ArrowRight, Search, User, Mail } from 'lucide-react';
 
 function JoinForm() {
   const searchParams = useSearchParams();
   const [code, setCode] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -18,15 +20,25 @@ function JoinForm() {
     const codeParam = searchParams.get('code');
     if (codeParam) {
       setCode(codeParam.toUpperCase());
-      handleJoin(codeParam.toUpperCase());
     }
+    // Try to load previously saved details
+    const savedName = localStorage.getItem('participantName');
+    const savedEmail = localStorage.getItem('participantEmail');
+    if (savedName) setName(savedName);
+    if (savedEmail) setEmail(savedEmail);
   }, [searchParams]);
 
   const handleJoin = async (joinCode: string) => {
-    if (!joinCode.trim()) return;
+    if (!joinCode.trim() || !name.trim() || !email.trim()) {
+      toast.error('Please fill all fields');
+      return;
+    }
     setLoading(true);
     try {
       const res = await api.get(`/events/${joinCode.trim().toUpperCase()}`);
+      localStorage.setItem('participantName', name.trim());
+      localStorage.setItem('participantEmail', email.trim());
+      localStorage.setItem('userId', name.trim()); // Use name as userId for polls/qna
       router.push(`/event/${res.data._id}?participant=true`);
     } catch (err) {
       toast.error('Event not found. Please check the code and try again.');
@@ -57,14 +69,50 @@ function JoinForm() {
             </span>
           </Link>
           <h1 className="text-4xl font-extrabold text-slate-900 mb-3">Join an event</h1>
-          <p className="text-lg text-slate-600">Enter the event code provided by your host</p>
+          <p className="text-lg text-slate-600">Please enter your details to join</p>
         </div>
 
         {/* Join Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="name" className="block text-sm font-semibold text-slate-800 mb-2">
+              Your Name
+            </label>
+            <div className="relative">
+              <input
+                id="name"
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-4 pl-12 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition text-lg font-medium"
+                placeholder="John Doe"
+              />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400" />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-semibold text-slate-800 mb-2">
+              Email Address
+            </label>
+            <div className="relative">
+              <input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-4 pl-12 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition text-lg font-medium"
+                placeholder="john@example.com"
+              />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400" />
+            </div>
+          </div>
+
           <div>
             <label htmlFor="code" className="block text-sm font-semibold text-slate-800 mb-2">
-              Event code
+              Event Code
             </label>
             <div className="relative">
               <input
@@ -84,7 +132,7 @@ function JoinForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-emerald-600 text-white font-bold text-xl rounded-lg hover:bg-emerald-700 transition shadow-sm disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-emerald-600 text-white font-bold text-xl rounded-lg hover:bg-emerald-700 transition shadow-sm disabled:opacity-50 mt-4"
           >
             {loading ? (
               <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -98,7 +146,7 @@ function JoinForm() {
         </form>
 
         {/* Footer */}
-        <p className="mt-10 text-center text-lg text-slate-600">
+        <p className="mt-8 text-center text-lg text-slate-600">
           Want to host your own event?{' '}
           <Link href="/register" className="font-bold text-emerald-600 hover:text-emerald-700">
             Sign up for free

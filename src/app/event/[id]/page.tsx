@@ -150,8 +150,30 @@ export default function EventPage() {
 
   const handleSubmitQuestion = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Question submitted!");
-    setNewQuestion("");
+    if (!newQuestion.trim()) return;
+    
+    try {
+      const author = localStorage.getItem('participantName') || localStorage.getItem('userId') || 'Anonymous';
+      await api.post(`/events/${params.id}/questions`, {
+        text: newQuestion,
+        author: author,
+        isAnonymous: false
+      });
+      
+      if (socket) {
+        socket.emit('send-question', {
+          eventId: params.id,
+          text: newQuestion,
+          author: author
+        });
+      }
+      
+      fetchEvent();
+      toast.success("Question submitted!");
+      setNewQuestion("");
+    } catch (err) {
+      toast.error("Failed to submit question");
+    }
   };
 
   const handleExport = async () => {
