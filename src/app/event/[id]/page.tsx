@@ -1047,6 +1047,17 @@ export default function EventPage() {
                                 className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500"
                               ></div>
                             </div>
+                            {count > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {activePoll.responses
+                                  .filter((r: any) => r.answer === option)
+                                  .map((r: any, i: number) => (
+                                    <span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full border border-slate-200" title={`Responded at ${new Date(r.timestamp).toLocaleTimeString()}`}>
+                                      {r.userId}
+                                    </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
