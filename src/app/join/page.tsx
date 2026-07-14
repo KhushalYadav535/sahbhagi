@@ -20,7 +20,7 @@ export default function Join() {
     setLoading(true);
     try {
       const res = await api.get(`/events/code/${code.trim().toUpperCase()}`);
-      router.push(`/event/${res.data._id}`);
+      router.push(`/event/${res.data._id}?participant=true`);
     } catch (err) {
       toast.error('Event not found. Please check the code and try again.');
     } finally {
