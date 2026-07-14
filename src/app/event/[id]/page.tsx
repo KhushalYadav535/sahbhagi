@@ -160,14 +160,6 @@ export default function EventPage() {
         isAnonymous: false
       });
       
-      if (socket) {
-        socket.emit('send-question', {
-          eventId: params.id,
-          text: newQuestion,
-          author: author
-        });
-      }
-      
       fetchEvent();
       toast.success("Question submitted!");
       setNewQuestion("");
