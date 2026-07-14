@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -8,7 +8,7 @@ import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { ArrowRight, Search } from 'lucide-react';
 
-export default function Join() {
+function JoinForm() {
   const searchParams = useSearchParams();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
@@ -106,5 +106,13 @@ export default function Join() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function Join() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-200 border-t-emerald-600"></div></div>}>
+      <JoinForm />
+    </Suspense>
   );
 }
