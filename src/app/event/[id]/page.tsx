@@ -864,9 +864,9 @@ export default function EventPage() {
   const activePoll = activeTab === "create" ? null : event.polls.find((p: any) => p._id === activeTab);
 
   return (
-    <div className="flex h-screen w-full bg-slate-50 overflow-hidden text-slate-900 font-sans">
+    <div className="flex flex-col md:flex-row h-screen w-full bg-slate-50 overflow-hidden text-slate-900 font-sans">
       {/* Sidebar */}
-      <div className="w-[280px] bg-slate-50/50 border-r border-slate-200 flex flex-col shrink-0">
+      <div className="w-full md:w-[280px] h-1/2 md:h-auto bg-slate-50/50 border-b md:border-b-0 md:border-r border-slate-200 flex flex-col shrink-0">
         <div className="p-4 flex items-center justify-between">
           <h2 className="font-bold text-slate-800">My interactions</h2>
           <button className="p-1 hover:bg-slate-200 rounded text-slate-500"><ChevronLeft size={16}/></button>
@@ -954,19 +954,21 @@ export default function EventPage() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col relative overflow-hidden bg-white">
         {/* Top Header */}
-        <header className="h-16 border-b border-slate-200 flex items-center justify-between px-6 bg-white shrink-0">
-           <div className="flex items-center gap-4">
-             <button onClick={() => router.push('/dashboard')} className="p-2 hover:bg-slate-100 rounded-full text-slate-500">
-               <ArrowLeft size={20} />
-             </button>
-             <h1 className="font-bold text-lg text-slate-800">{event.title}</h1>
+        <header className="py-3 md:py-0 md:h-16 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between px-4 md:px-6 bg-white shrink-0 gap-3 md:gap-0">
+           <div className="flex items-center justify-between md:justify-start gap-4">
+             <div className="flex items-center gap-2 md:gap-4">
+               <button onClick={() => router.push('/dashboard')} className="p-2 hover:bg-slate-100 rounded-full text-slate-500">
+                 <ArrowLeft size={20} />
+               </button>
+               <h1 className="font-bold text-lg text-slate-800 truncate max-w-[150px] md:max-w-none">{event.title}</h1>
+             </div>
              <span className="text-xs font-bold bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full border border-orange-200 flex items-center gap-1">
                <Sparkles size={12}/> Upgrade
              </span>
            </div>
-           <div className="flex items-center gap-6 text-sm font-semibold text-slate-600">
-             <span className="flex items-center gap-1.5"><LayoutTemplate size={16} className="text-slate-400"/> {event.date || "Jul 11 - 13, 2026"}</span>
-             <span className="flex items-center gap-1.5"># {event.code}</span>
+           <div className="flex items-center gap-3 md:gap-6 text-sm font-semibold text-slate-600 overflow-x-auto no-scrollbar pb-1 md:pb-0 shrink-0">
+             <span className="flex items-center gap-1.5 whitespace-nowrap"><LayoutTemplate size={16} className="text-slate-400"/> {event.date || "Jul 11 - 13, 2026"}</span>
+             <span className="flex items-center gap-1.5 whitespace-nowrap"># {event.code}</span>
              <span className="flex items-center gap-1.5"><Globe size={16} className="text-slate-400"/> Public</span>
              <div className="flex items-center gap-2 ml-2">
                <button onClick={() => setShowSharePopover(true)} className="flex items-center gap-2 px-4 py-1.5 border border-green-600 text-green-700 rounded-lg hover:bg-green-50 transition">

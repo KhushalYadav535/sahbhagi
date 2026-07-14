@@ -54,7 +54,7 @@ export default function PresentPage() {
   );
 
   const activePolls = event.polls.filter((p: any) => p.isActive);
-  const joinUrl = typeof window !== 'undefined' ? `${window.location.origin}/event/${event.code}` : `sahbhagi.app/event/${event.code}`;
+  const joinUrl = typeof window !== 'undefined' ? `${window.location.origin}/join?code=${event.code}` : `sahbhagi.app/join?code=${event.code}`;
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(joinUrl)}`;
 
   return (

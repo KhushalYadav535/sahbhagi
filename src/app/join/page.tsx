@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -9,23 +9,34 @@ import toast from 'react-hot-toast';
 import { ArrowRight, Search } from 'lucide-react';
 
 export default function Join() {
+  const searchParams = useSearchParams();
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!code.trim()) return;
-    
+  useEffect(() => {
+    const codeParam = searchParams.get('code');
+    if (codeParam) {
+      setCode(codeParam.toUpperCase());
+      handleJoin(codeParam.toUpperCase());
+    }
+  }, [searchParams]);
+
+  const handleJoin = async (joinCode: string) => {
+    if (!joinCode.trim()) return;
     setLoading(true);
     try {
-      const res = await api.get(`/events/code/${code.trim().toUpperCase()}`);
+      const res = await api.get(`/events/code/${joinCode.trim().toUpperCase()}`);
       router.push(`/event/${res.data._id}?participant=true`);
     } catch (err) {
       toast.error('Event not found. Please check the code and try again.');
-    } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    handleJoin(code);
   };
 
   return (
