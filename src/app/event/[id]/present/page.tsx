@@ -143,8 +143,15 @@ export default function PresentPage() {
                   )}
 
                   {poll.type === 'word-cloud' && (
-                    <div className="flex-1 w-full h-full min-h-[400px] flex items-center justify-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl">
-                      <WordCloud words={poll.responses.map((r: any) => r.answer)} />
+                    <div className="flex-1 w-full h-full min-h-[400px] flex items-center justify-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+                      <WordCloud words={(() => {
+                        const counts: Record<string, number> = {};
+                        poll.responses.forEach((r: any) => {
+                          const w = r.answer?.trim();
+                          if (w) counts[w] = (counts[w] || 0) + 1;
+                        });
+                        return Object.entries(counts).map(([text, value]) => ({ text, value }));
+                      })()} />
                     </div>
                   )}
 
@@ -185,7 +192,20 @@ export default function PresentPage() {
                     </div>
                   )}
 
-                  {(poll.type === 'open-text' || poll.type === 'rating' || poll.type === 'ranking') && (
+                  {poll.type === 'open-text' && (
+                    <div className="flex-1 flex flex-wrap content-start items-start justify-center gap-4 p-8 w-full max-w-6xl mx-auto h-full overflow-y-auto">
+                      {poll.responses.map((r: any, idx: number) => (
+                        <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-md text-2xl font-medium text-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-xl break-words">
+                          {r.answer}
+                        </div>
+                      ))}
+                      {poll.responses.length === 0 && (
+                        <div className="w-full text-center text-slate-500 text-2xl mt-20">Waiting for responses...</div>
+                      )}
+                    </div>
+                  )}
+
+                  {(poll.type === 'rating' || poll.type === 'ranking') && (
                     <div className="flex-1 flex flex-col items-center justify-center">
                       <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md text-center max-w-2xl">
                          <h3 className="text-2xl font-semibold text-slate-800 mb-4">Responses are coming in!</h3>
