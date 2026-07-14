@@ -885,12 +885,12 @@ export default function EventPage() {
         
         <div className="px-4 mb-6">
           <h3 className="text-xs font-semibold text-slate-500 mb-2">Audience Q&A</h3>
-          <div className="bg-white border border-slate-200 rounded-lg p-3 flex justify-between items-start hover:border-green-500 cursor-pointer transition shadow-sm group">
+          <div onClick={() => setActiveTab("qna")} className={`bg-white border rounded-lg p-3 flex justify-between items-start cursor-pointer transition shadow-sm group ${activeTab === "qna" ? "border-green-500 shadow-md" : "border-slate-200 hover:border-green-500"}`}>
              <div className="flex gap-3">
-               <div className="mt-0.5"><MessageSquare className="text-slate-400" size={18} /></div>
-               <span className="text-sm text-slate-500 leading-snug pr-2">Add Q&A to collect questions from your audience</span>
+               <div className="mt-0.5"><MessageSquare className={activeTab === "qna" ? "text-green-600" : "text-slate-400"} size={18} /></div>
+               <span className="text-sm text-slate-500 leading-snug pr-2">View Audience Q&A ({event.questions.length})</span>
              </div>
-             <span className="text-green-700 font-bold text-sm opacity-0 group-hover:opacity-100 transition">Add</span>
+             <span className="text-green-700 font-bold text-sm opacity-0 group-hover:opacity-100 transition">View</span>
           </div>
         </div>
 
@@ -1010,6 +1010,39 @@ export default function EventPage() {
         <div className="flex-1 overflow-hidden bg-slate-50">
            {activeTab === 'create' ? (
               <CreateInteractionView onClose={() => {}} eventId={params.id as string} onSuccess={fetchEvent} />
+           ) : activeTab === 'qna' ? (
+              <div className="h-full overflow-y-auto p-8">
+                 <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+                   <h3 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2"><MessageSquare size={24}/> Audience Q&A</h3>
+                   <div className="space-y-4">
+                     {event.questions.map((question: any) => (
+                       <div key={question._id} className="p-5 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-start">
+                         <div>
+                           <p className="text-slate-900 mb-2 text-base font-medium">{question.text}</p>
+                           <div className="flex items-center gap-3 text-sm text-slate-500 font-medium">
+                             <span>Asked by: {question.isAnonymous && question.author !== 'Anonymous' ? `Anonymous (${question.author})` : question.author}</span>
+                             <span className="flex items-center gap-1 text-slate-400"><ThumbsUp size={14}/> {question.upvotes.length}</span>
+                           </div>
+                         </div>
+                         <div className="flex flex-col gap-2 items-end">
+                           <div className="flex gap-2">
+                              {!question.isApproved && (
+                                <button onClick={() => handleModerateQuestion(question._id, true)} className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-full transition" title="Approve"><Check size={18} /></button>
+                              )}
+                              {question.isApproved && (
+                                <button onClick={() => handleModerateQuestion(question._id, false)} className="p-2 text-red-600 hover:bg-red-100 rounded-full transition" title="Reject"><X size={18} /></button>
+                              )}
+                           </div>
+                           <span className={`text-xs px-3 py-1 rounded-full font-semibold ${question.isApproved ? "bg-emerald-100 text-emerald-700" : "bg-yellow-100 text-yellow-700"}`}>
+                             {question.isApproved ? "Approved" : "Pending"}
+                           </span>
+                         </div>
+                       </div>
+                     ))}
+                     {event.questions.length === 0 && <p className="text-slate-500 text-center py-8">No questions asked yet.</p>}
+                   </div>
+                 </div>
+              </div>
            ) : activePoll ? (
               <div className="h-full overflow-y-auto p-8">
                  <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
