@@ -1059,10 +1059,18 @@ export default function EventPage() {
                     </div>
 
                     <div className="space-y-4">
-                      {activePoll.options.map((option: string, idx: number) => {
-                        const count = activePoll.responses.filter((r: any) => r.answer === option).length;
+                      {(activePoll.type === 'multiple-choice' || activePoll.type === 'quiz' || activePoll.type === 'ranking') && activePoll.options.map((option: string, idx: number) => {
+                        let count = 0;
+                        let percentage = 0;
+                        
+                        if (activePoll.type === 'ranking') {
+                           // For ranking, we just show options. A full scoring view could be added, but for now we just show basic count.
+                           count = activePoll.responses.filter((r: any) => r.answer && r.answer.includes(option)).length;
+                        } else {
+                           count = activePoll.responses.filter((r: any) => r.answer === option).length;
+                        }
                         const total = activePoll.responses.length;
-                        const percentage = total === 0 ? 0 : Math.round((count / total) * 100);
+                        percentage = total === 0 ? 0 : Math.round((count / total) * 100);
 
                         return (
                           <div key={idx} className="relative pt-1">
@@ -1071,19 +1079,21 @@ export default function EventPage() {
                                 {option} {activePoll.type === "quiz" && activePoll.correctAnswer === option && "✅"}
                               </span>
                               <span className="text-sm font-semibold inline-block text-slate-700">
-                                {count} ({percentage}%)
+                                {count} {activePoll.type !== 'ranking' && `(${percentage}%)`}
                               </span>
                             </div>
-                            <div className="overflow-hidden h-2 text-xs flex rounded bg-slate-100">
-                              <div
-                                style={{ width: `${percentage}%` }}
-                                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500"
-                              ></div>
-                            </div>
+                            {activePoll.type !== 'ranking' && (
+                              <div className="overflow-hidden h-2 text-xs flex rounded bg-slate-100">
+                                <div
+                                  style={{ width: `${percentage}%` }}
+                                  className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500"
+                                ></div>
+                              </div>
+                            )}
                             {count > 0 && (
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {activePoll.responses
-                                  .filter((r: any) => r.answer === option)
+                                  .filter((r: any) => activePoll.type === 'ranking' ? (r.answer && r.answer.includes(option)) : r.answer === option)
                                   .map((r: any, i: number) => (
                                     <span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full border border-slate-200" title={`Responded at ${new Date(r.timestamp).toLocaleTimeString()}`}>
                                       {r.userId}
@@ -1094,6 +1104,20 @@ export default function EventPage() {
                           </div>
                         );
                       })}
+
+                      {(activePoll.type === 'open-text' || activePoll.type === 'word-cloud' || activePoll.type === 'rating' || activePoll.type === 'qna') && (
+                        <div className="space-y-3">
+                          {activePoll.responses.map((r: any, idx: number) => (
+                            <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-start">
+                              <p className="text-slate-800 font-medium text-lg break-words flex-1">{r.answer} {activePoll.type === 'rating' && '⭐'}</p>
+                              <span className="text-xs bg-white text-slate-500 px-3 py-1 rounded-full border border-slate-200 ml-4 shrink-0" title={`Responded at ${new Date(r.timestamp).toLocaleTimeString()}`}>
+                                {r.userId}
+                              </span>
+                            </div>
+                          ))}
+                          {activePoll.responses.length === 0 && <p className="text-slate-500 text-center py-4">No responses yet.</p>}
+                        </div>
+                      )}
                     </div>
                  </div>
               </div>
