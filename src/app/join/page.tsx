@@ -26,7 +26,7 @@ function JoinForm() {
     if (!joinCode.trim()) return;
     setLoading(true);
     try {
-      const res = await api.get(`/events/code/${joinCode.trim().toUpperCase()}`);
+      const res = await api.get(`/events/${joinCode.trim().toUpperCase()}`);
       router.push(`/event/${res.data._id}?participant=true`);
     } catch (err) {
       toast.error('Event not found. Please check the code and try again.');
