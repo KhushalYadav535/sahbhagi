@@ -52,103 +52,99 @@ function JoinForm() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        {/* Logo & Header */}
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col items-center justify-center px-4 relative overflow-hidden">
+      {/* Abstract background shapes */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full max-w-[1000px] opacity-40 pointer-events-none z-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+      </div>
+
+      <div className="max-w-[480px] w-full relative z-10">
+        {/* Logo */}
         <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center gap-3 mb-8">
-            <Image
-              src="/sahbhagi_logo.png"
-              alt="Sahbhagi"
-              width={56}
-              height={56}
-              className="rounded-lg"
-            />
-            <span className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
+          <Link href="/" className="inline-flex items-center gap-3">
+            <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-100">
+              <Image
+                src="/sahbhagi_logo.png"
+                alt="Sahbhagi"
+                width={48}
+                height={48}
+                className="rounded-lg"
+              />
+            </div>
+            <span className="text-4xl font-extrabold text-slate-800 tracking-tight">
               Sahbhagi
             </span>
           </Link>
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-3">Join an event</h1>
-          <p className="text-lg text-slate-600">Please enter your details to join</p>
         </div>
 
-        {/* Join Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="name" className="block text-sm font-semibold text-slate-800 mb-2">
-              Your Name
-            </label>
-            <div className="relative">
-              <input
-                id="name"
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-4 pl-12 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition text-lg font-medium"
-                placeholder="John Doe"
-              />
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400" />
+        {/* Join Card */}
+        <div className="bg-white p-8 md:p-12 rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-slate-100 backdrop-blur-sm">
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-8 text-center tracking-tight">Join an event</h1>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <div className="relative">
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-2xl select-none">#</div>
+                <input
+                  id="code"
+                  type="text"
+                  required
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.toUpperCase())}
+                  maxLength={8}
+                  className="w-full h-16 pl-12 pr-6 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition text-2xl font-bold uppercase tracking-wider text-slate-800 placeholder-slate-400 outline-none"
+                  placeholder="Enter code"
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label htmlFor="email" className="block text-sm font-semibold text-slate-800 mb-2">
-              Email Address
-            </label>
-            <div className="relative">
-              <input
-                id="email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-4 pl-12 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition text-lg font-medium"
-                placeholder="john@example.com"
-              />
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400" />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full h-14 px-5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition text-base font-semibold text-slate-800 placeholder-slate-400 outline-none"
+                  placeholder="Your Name"
+                />
+              </div>
+              <div>
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full h-14 px-5 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition text-base font-semibold text-slate-800 placeholder-slate-400 outline-none"
+                  placeholder="Email"
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label htmlFor="code" className="block text-sm font-semibold text-slate-800 mb-2">
-              Event Code
-            </label>
-            <div className="relative">
-              <input
-                id="code"
-                type="text"
-                required
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                maxLength={8}
-                className="w-full px-4 py-4 pl-12 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition text-2xl font-bold uppercase tracking-widest"
-                placeholder="ABC123"
-              />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400" />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-4 bg-emerald-600 text-white font-bold text-xl rounded-lg hover:bg-emerald-700 transition shadow-sm disabled:opacity-50 mt-4"
-          >
-            {loading ? (
-              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            ) : (
-              <>
-                Join event
-                <ArrowRight size={24} />
-              </>
-            )}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-16 flex items-center justify-center gap-3 bg-emerald-600 text-white font-extrabold text-xl rounded-2xl hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20 disabled:opacity-50 mt-8 group"
+            >
+              {loading ? (
+                <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  Join event
+                  <ArrowRight size={24} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
+            </button>
+          </form>
+        </div>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-lg text-slate-600">
+        <p className="mt-12 text-center text-slate-500 font-medium">
           Want to host your own event?{' '}
-          <Link href="/register" className="font-bold text-emerald-600 hover:text-emerald-700">
+          <Link href="/register" className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline underline-offset-4 transition">
             Sign up for free
           </Link>
         </p>

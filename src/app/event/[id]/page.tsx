@@ -42,6 +42,7 @@ interface Poll {
   options: string[];
   responses: any[];
   isActive: boolean;
+  isLocked?: boolean;
   correctAnswer?: string;
 }
 
@@ -97,6 +98,7 @@ export default function EventPage() {
   const [isGettingInsight, setIsGettingInsight] = useState(false);
   const [aiInsight, setAiInsight] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [pollMenuOpenId, setPollMenuOpenId] = useState<string | null>(null);
   
   useEffect(() => {
     fetchEvent();
@@ -127,6 +129,35 @@ export default function EventPage() {
     }
   };
 
+  const handleToggleLock = async (pollId: string, isLocked: boolean) => {
+    try {
+      await api.put(`/polls/${pollId}`, { isLocked });
+      setEvent((prev: any) => ({
+        ...prev,
+        polls: prev.polls.map((p: Poll) =>
+          p._id === pollId ? { ...p, isLocked } : p,
+        ),
+      }));
+    } catch (err) {
+      toast.error("Failed to update poll lock status");
+    }
+  };
+
+  const handleDeletePoll = async (pollId: string) => {
+    if (!confirm("Are you sure you want to delete this poll?")) return;
+    try {
+      await api.delete(`/polls/${pollId}`);
+      setEvent((prev: any) => ({
+        ...prev,
+        polls: prev.polls.filter((p: Poll) => p._id !== pollId),
+      }));
+      if (activeTab === pollId) setActiveTab("create");
+      toast.success("Poll deleted");
+    } catch (err) {
+      toast.error("Failed to delete poll");
+    }
+  };
+
   const handleReact = async (pollId: string, responseId: string, emoji: string) => {
     try {
       await api.post(`/events/${params.id}/polls/${pollId}/responses/${responseId}/react`, { emoji });
@@ -137,6 +168,11 @@ export default function EventPage() {
   };
 
   const handlePollResponse = async (pollId: string, answer: any) => {
+    const poll = event?.polls.find(p => p._id === pollId);
+    if (poll?.isLocked) {
+      toast.error("This poll is locked");
+      return;
+    }
     try {
       const userId = localStorage.getItem("userId") || `user_${Date.now()}`;
       localStorage.setItem("userId", userId);
@@ -499,7 +535,7 @@ export default function EventPage() {
                       const percentage = total > 0 ? (count / total) * 100 : 0;
                       return (
                         <div key={idx}>
-                          {isParticipant && poll.isActive ? (
+                          {isParticipant && poll.isActive && !poll.isLocked ? (
                             <button
                               onClick={() =>
                                 handlePollResponse(poll._id, option)
@@ -538,11 +574,11 @@ export default function EventPage() {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
-                        disabled={!isParticipant || !poll.isActive}
+                        disabled={!isParticipant || !poll.isActive || poll.isLocked}
                         onClick={() =>
                           handlePollResponse(poll._id, star.toString())
                         }
-                        className={`text-5xl ${!isParticipant || !poll.isActive ? "cursor-default opacity-50" : "hover:scale-125 transition cursor-pointer"}`}
+                        className={`text-5xl ${(!isParticipant || !poll.isActive || poll.isLocked) ? "cursor-default opacity-50" : "hover:scale-125 transition cursor-pointer"}`}
                       >
                         ⭐
                       </button>
@@ -552,7 +588,7 @@ export default function EventPage() {
 
                 {poll.type === "ranking" && (
                   <div className="space-y-4 pt-2">
-                    {isParticipant && poll.isActive ? (
+                    {isParticipant && poll.isActive && !poll.isLocked ? (
                       <RankingPollParticipant
                         poll={poll}
                         onSubmit={(answer) =>
@@ -623,7 +659,7 @@ export default function EventPage() {
                         {r.answer}
                       </span>
                     ))}
-                    {isParticipant && poll.isActive && (
+                    {isParticipant && poll.isActive && !poll.isLocked && (
                       <form
                         onSubmit={(e) => {
                           e.preventDefault();
@@ -694,7 +730,7 @@ export default function EventPage() {
                         </div>
                       ))}
                     </div>
-                    {isParticipant && poll.isActive && (
+                    {isParticipant && poll.isActive && !poll.isLocked && (
                       <form
                         onSubmit={(e) => {
                           e.preventDefault();
@@ -878,86 +914,114 @@ export default function EventPage() {
   const activePoll = activeTab === "create" ? null : event.polls.find((p: any) => p._id === activeTab);
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-full bg-slate-50 overflow-hidden text-slate-900 font-sans">
+    <div className="flex flex-col md:flex-row h-screen w-full bg-slate-50 overflow-hidden text-slate-900 font-sans selection:bg-emerald-200 selection:text-emerald-900">
       {/* Sidebar */}
-      <div className="w-full md:w-[280px] h-1/2 md:h-auto bg-slate-50/50 border-b md:border-b-0 md:border-r border-slate-200 flex flex-col shrink-0">
-        <div className="p-4 flex items-center justify-between">
-          <h2 className="font-bold text-slate-800">My interactions</h2>
-          <button className="p-1 hover:bg-slate-200 rounded text-slate-500"><ChevronLeft size={16}/></button>
+      <div className="w-full md:w-[320px] h-1/2 md:h-auto bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col shrink-0 shadow-sm z-10">
+        <div className="p-5 flex items-center justify-between border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <button onClick={() => router.push('/dashboard')} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 transition">
+              <ChevronLeft size={20}/>
+            </button>
+            <h2 className="font-extrabold text-slate-800 text-lg tracking-tight">Interactions</h2>
+          </div>
         </div>
-        <div className="px-4 flex gap-2 mb-6">
+        <div className="px-5 py-5">
           <button 
             onClick={() => setActiveTab("create")}
-            className="flex-1 bg-green-700 hover:bg-green-800 text-white py-2 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-sm transition"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm shadow-emerald-600/20 transition-all active:scale-[0.98]"
           >
-            <Plus size={16} /> Add
-          </button>
-          <button className="flex-1 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-sm transition">
-            <LayoutTemplate size={16} /> Templates
+            <Plus size={20} strokeWidth={2.5} /> Create
           </button>
         </div>
         
-        <div className="px-4 mb-6">
-          <h3 className="text-xs font-semibold text-slate-500 mb-2">Audience Q&A</h3>
-          <div onClick={() => setActiveTab("qna")} className={`bg-white border rounded-lg p-3 flex justify-between items-start cursor-pointer transition shadow-sm group ${activeTab === "qna" ? "border-green-500 shadow-md" : "border-slate-200 hover:border-green-500"}`}>
-             <div className="flex gap-3">
-               <div className="mt-0.5"><MessageSquare className={activeTab === "qna" ? "text-green-600" : "text-slate-400"} size={18} /></div>
-               <span className="text-sm text-slate-500 leading-snug pr-2">View Audience Q&A ({event.questions.length})</span>
+        <div className="px-5 mb-8">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 px-1">Audience Q&A</h3>
+          <div onClick={() => setActiveTab("qna")} className={`bg-white rounded-xl p-3.5 flex justify-between items-center cursor-pointer transition-all shadow-sm group ${activeTab === "qna" ? "border-emerald-500 shadow-md ring-2 ring-emerald-500/20 border" : "border border-slate-200 hover:border-emerald-400 hover:shadow-md"}`}>
+             <div className="flex gap-3 items-center">
+               <div className={`p-2 rounded-lg transition ${activeTab === "qna" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600 group-hover:bg-emerald-50 group-hover:text-emerald-600"}`}>
+                 <MessageSquare size={18} strokeWidth={2.5} />
+               </div>
+               <span className="text-sm font-bold text-slate-700">Audience Q&A</span>
              </div>
-             <span className="text-green-700 font-bold text-sm opacity-0 group-hover:opacity-100 transition">View</span>
+             <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">{event.questions.length}</span>
           </div>
         </div>
 
-        <div className="px-4 flex-1 overflow-y-auto">
-          <h3 className="text-xs font-semibold text-slate-500 mb-2">Polls</h3>
+        <div className="px-5 flex-1 overflow-y-auto pb-6">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 px-1">Polls</h3>
           {event.polls.length === 0 ? (
-             <p className="text-sm text-slate-500 text-center py-8">Your interactions will appear here</p>
+             <div className="text-center py-10 px-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+               <p className="text-sm text-slate-500 font-medium">No polls created yet</p>
+               <button onClick={() => setActiveTab("create")} className="text-emerald-600 text-sm font-bold mt-2 hover:underline">Create your first poll</button>
+             </div>
           ) : (
-             <div className="space-y-2 pb-4">
+             <div className="space-y-3 pb-4">
                {event.polls.map((poll: any) => (
                   <div 
                     key={poll._id} 
                     onClick={() => setActiveTab(poll._id)}
-                    className={`relative p-4 rounded-xl border cursor-pointer transition group ${activeTab === poll._id ? 'bg-white border-slate-300 shadow-sm' : 'bg-white border-slate-200 shadow-sm hover:border-slate-300'}`}
+                    className={`relative p-4 rounded-xl border cursor-pointer transition-all group ${activeTab === poll._id ? 'bg-white border-emerald-500 shadow-md ring-2 ring-emerald-500/20' : 'bg-white border-slate-200 shadow-sm hover:border-emerald-400 hover:shadow-md'}`}
                   >
-                    <p className="font-medium text-slate-800 line-clamp-2 mb-4 leading-snug">{poll.question}</p>
+                    <p className="font-bold text-slate-800 line-clamp-2 mb-4 leading-snug">{poll.question}</p>
                     
                     <div className="flex items-center justify-between mt-auto">
                       <div className="flex items-center gap-2">
-                        <div className="bg-slate-50 p-1.5 rounded-lg border border-slate-200">
+                        <div className={`p-1.5 rounded-lg transition ${activeTab === poll._id ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600 group-hover:bg-emerald-50 group-hover:text-emerald-600'}`}>
                           {getPollIcon(poll.type)}
                         </div>
-                        <span className="text-xs text-slate-500 font-medium">
+                        <span className="text-xs text-slate-500 font-bold">
                           {poll.responses ? poll.responses.length : 0} votes
                         </span>
                       </div>
                       
                       {/* Action buttons appear on hover or when active */}
                       <div className={`flex items-center gap-1 bg-white border border-slate-200 rounded-full p-1 shadow-sm transition-opacity ${activeTab === poll._id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                        <button className="p-1.5 hover:bg-slate-100 rounded-full text-slate-600 transition">
-                          <Eye size={14} />
-                        </button>
-                        <button className="p-1.5 hover:bg-slate-100 rounded-full text-slate-600 transition">
-                          <Lock size={14} />
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleLock(poll._id, !poll.isLocked);
+                          }}
+                          className={`p-1.5 rounded-full transition ${poll.isLocked ? 'bg-amber-100 text-amber-700' : 'hover:bg-slate-100 text-slate-600'}`}
+                          title={poll.isLocked ? "Unlock voting" : "Lock voting"}
+                        >
+                          <Lock size={14} strokeWidth={2.5} />
                         </button>
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
                             handleTogglePoll(poll._id, !poll.isActive);
                           }} 
-                          className={`p-1.5 rounded-full transition text-white ${poll.isActive ? 'bg-slate-800 hover:bg-slate-900' : 'bg-green-700 hover:bg-green-800'}`}
+                          className={`p-1.5 rounded-full transition text-white ${poll.isActive ? 'bg-slate-800 hover:bg-slate-900' : 'bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-600/30'}`}
                         >
                           {poll.isActive ? <Square size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
                         </button>
-                        <button className="p-1.5 hover:bg-slate-100 rounded-full text-slate-600 transition">
-                          <MoreVertical size={14} />
-                        </button>
+                        <div className="relative">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPollMenuOpenId(pollMenuOpenId === poll._id ? null : poll._id);
+                            }}
+                            className="p-1.5 hover:bg-slate-100 rounded-full text-slate-600 transition"
+                          >
+                            <MoreVertical size={14} />
+                          </button>
+                          {pollMenuOpenId === poll._id && (
+                            <div className="absolute right-0 bottom-full mb-2 w-32 bg-white border border-slate-200 rounded-lg shadow-xl z-50 overflow-hidden">
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPollMenuOpenId(null);
+                                  handleDeletePoll(poll._id);
+                                }} 
+                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-slate-100 flex items-center gap-2 font-medium"
+                              >
+                                <Trash2 size={14}/> Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    {/* Active Green Indicator (Left edge) */}
-                    {activeTab === poll._id && (
-                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-600 rounded-l-xl"></div>
-                    )}
                   </div>
                ))}
              </div>
@@ -966,50 +1030,52 @@ export default function EventPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col relative overflow-hidden bg-white">
+      <div className="flex-1 flex flex-col relative overflow-hidden bg-slate-50/50">
         {/* Top Header */}
-        <header className="py-3 md:py-0 md:h-16 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between px-4 md:px-6 bg-white shrink-0 gap-3 md:gap-0">
+        <header className="py-3 md:py-0 md:h-[72px] border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between px-6 bg-white shrink-0 gap-3 md:gap-0 shadow-sm z-20">
            <div className="flex items-center justify-between md:justify-start gap-4">
-             <div className="flex items-center gap-2 md:gap-4">
-               <button onClick={() => router.push('/dashboard')} className="p-2 hover:bg-slate-100 rounded-full text-slate-500">
-                 <ArrowLeft size={20} />
-               </button>
-               <h1 className="font-bold text-lg text-slate-800 truncate max-w-[150px] md:max-w-none">{event.title}</h1>
+             <div className="flex items-center gap-4">
+               <div className="bg-emerald-100 text-emerald-800 p-2 rounded-xl">
+                 <LayoutTemplate size={20} className="text-emerald-700" />
+               </div>
+               <div>
+                 <h1 className="font-extrabold text-xl text-slate-800 truncate max-w-[200px] md:max-w-none">{event.title}</h1>
+                 <div className="flex items-center gap-2 mt-0.5">
+                   <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">#{event.code}</span>
+                   <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                   <span className="text-xs font-bold text-slate-500 flex items-center gap-1"><Globe size={12}/> Public</span>
+                 </div>
+               </div>
              </div>
-             <span className="text-xs font-bold bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full border border-orange-200 flex items-center gap-1">
-               <Sparkles size={12}/> Upgrade
-             </span>
            </div>
-           <div className="flex items-center gap-3 md:gap-6 text-sm font-semibold text-slate-600 overflow-x-auto no-scrollbar pb-1 md:pb-0 shrink-0">
-             <span className="flex items-center gap-1.5 whitespace-nowrap"><LayoutTemplate size={16} className="text-slate-400"/> {event.date || "Jul 11 - 13, 2026"}</span>
-             <span className="flex items-center gap-1.5 whitespace-nowrap"># {event.code}</span>
-             <span className="flex items-center gap-1.5"><Globe size={16} className="text-slate-400"/> Public</span>
-             <div className="flex items-center gap-2 ml-2">
-               <button onClick={() => setShowSharePopover(true)} className="flex items-center gap-2 px-4 py-1.5 border border-green-600 text-green-700 rounded-lg hover:bg-green-50 transition">
-                 <Share2 size={16} /> Share
+           <div className="flex items-center gap-4 text-sm font-semibold text-slate-600 overflow-x-auto no-scrollbar pb-1 md:pb-0 shrink-0">
+             <div className="flex items-center gap-3">
+               <button onClick={() => setShowSharePopover(true)} className="flex items-center gap-2 px-5 py-2.5 border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition shadow-sm bg-white active:scale-95">
+                 <Share2 size={18} /> Share
                </button>
-               <div className="flex rounded-lg overflow-hidden border border-green-700">
-                 <button onClick={() => router.push(`/event/${params.id}/present`)} className="flex items-center gap-2 px-4 py-1.5 bg-green-700 text-white hover:bg-green-800 transition">
-                   <Play size={16} /> Present
+               <div className="flex rounded-xl overflow-hidden shadow-sm shadow-emerald-700/20 active:scale-95 transition">
+                 <button onClick={() => router.push(`/event/${params.id}/present`)} className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition">
+                   <Play size={18} fill="currentColor" /> Present
                  </button>
-                 <div className="relative border-l border-green-800">
-                   <button onClick={() => setShowMenu(!showMenu)} className="flex items-center justify-center px-2 py-1.5 bg-green-700 text-white hover:bg-green-800 transition h-full">
-                     <MoreHorizontal size={16} />
+                 <div className="relative border-l border-emerald-700/50">
+                   <button onClick={() => setShowMenu(!showMenu)} className="flex items-center justify-center px-3 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 transition h-full">
+                     <ChevronRight size={18} strokeWidth={2.5} className={showMenu ? "rotate-90 transition-transform" : "transition-transform"} />
                    </button>
                    {showMenu && (
-                     <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-xl z-50 overflow-hidden">
-                       <button onClick={() => { setShowMenu(false); handleExport(); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2">
-                         <Download size={16}/> Export CSV
+                     <div className="absolute right-0 mt-3 w-56 bg-white border border-slate-200 rounded-xl shadow-2xl z-50 overflow-hidden py-1">
+                       <button onClick={() => { setShowMenu(false); handleExport(); }} className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-3">
+                         <Download size={16} className="text-slate-400"/> Export Results
                        </button>
-                       <button onClick={() => { setShowMenu(false); handleSyncLms(); }} className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2">
-                         <BookOpen size={16}/> Sync to LMS
+                       <button onClick={() => { setShowMenu(false); handleSyncLms(); }} className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-3">
+                         <BookOpen size={16} className="text-slate-400"/> Sync to LMS
                        </button>
-                       <label className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2 cursor-pointer">
-                         <Upload size={16}/> Import Polls
+                       <div className="h-px bg-slate-100 my-1 w-full"></div>
+                       <label className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer">
+                         <Upload size={16} className="text-slate-400"/> Import Polls
                          <input type="file" className="hidden" accept=".xlsx, .csv" onChange={(e) => { setShowMenu(false); handleImport(e); }} />
                        </label>
-                       <label className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2 cursor-pointer border-t border-slate-100">
-                         <Users size={16}/> Upload Roster
+                       <label className="w-full text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-3 cursor-pointer">
+                         <Users size={16} className="text-slate-400"/> Upload Roster
                          <input type="file" className="hidden" accept=".xlsx, .csv" onChange={(e) => { setShowMenu(false); handleImportRoster(e); }} />
                        </label>
                      </div>
@@ -1021,64 +1087,82 @@ export default function EventPage() {
         </header>
 
         {/* Dynamic Content Body */}
-        <div className="flex-1 overflow-hidden bg-slate-50">
+        <div className="flex-1 overflow-hidden relative">
+           <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, black 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
            {activeTab === 'create' ? (
-              <CreateInteractionView onClose={() => {}} eventId={params.id as string} onSuccess={fetchEvent} />
+              <div className="relative z-10 h-full"><CreateInteractionView onClose={() => {}} eventId={params.id as string} onSuccess={fetchEvent} /></div>
            ) : activeTab === 'qna' ? (
-              <div className="h-full overflow-y-auto p-8">
-                 <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-                   <h3 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2"><MessageSquare size={24}/> Audience Q&A</h3>
-                   <div className="space-y-4">
+              <div className="h-full overflow-y-auto p-6 md:p-12 relative z-10">
+                 <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 md:p-10">
+                   <div className="flex justify-between items-center mb-8 border-b border-slate-100 pb-6">
+                     <h3 className="text-3xl font-extrabold text-slate-800 flex items-center gap-3">
+                       <MessageSquare size={32} className="text-emerald-600"/> 
+                       Audience Q&A
+                     </h3>
+                   </div>
+                   <div className="space-y-5">
                      {event.questions.map((question: any) => (
-                       <div key={question._id} className="p-5 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-start">
-                         <div>
-                           <p className="text-slate-900 mb-2 text-base font-medium">{question.text}</p>
-                           <div className="flex items-center gap-3 text-sm text-slate-500 font-medium">
-                             <span>Asked by: {question.isAnonymous && question.author !== 'Anonymous' ? `Anonymous (${question.author})` : question.author}</span>
-                             <span className="flex items-center gap-1 text-slate-400"><ThumbsUp size={14}/> {question.upvotes.length}</span>
+                       <div key={question._id} className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex justify-between items-start gap-6">
+                         <div className="flex-1">
+                           <p className="text-slate-800 mb-4 text-lg font-bold leading-relaxed">{question.text}</p>
+                           <div className="flex items-center gap-4 text-sm font-medium">
+                             <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full text-slate-600">
+                               <Users size={14} />
+                               {question.isAnonymous && question.author !== 'Anonymous' ? `Anonymous (${question.author})` : question.author}
+                             </div>
+                             <span className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full font-bold">
+                               <ThumbsUp size={14}/> {question.upvotes.length}
+                             </span>
                            </div>
                          </div>
-                         <div className="flex flex-col gap-2 items-end">
+                         <div className="flex flex-col gap-3 items-end shrink-0">
                            <div className="flex gap-2">
                               {!question.isApproved && (
-                                <button onClick={() => handleModerateQuestion(question._id, true)} className="p-2 text-emerald-600 hover:bg-emerald-100 rounded-full transition" title="Approve"><Check size={18} /></button>
+                                <button onClick={() => handleModerateQuestion(question._id, true)} className="p-2.5 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:scale-105 active:scale-95 rounded-xl transition-all shadow-sm" title="Approve"><Check size={20} strokeWidth={3} /></button>
                               )}
                               {question.isApproved && (
-                                <button onClick={() => handleModerateQuestion(question._id, false)} className="p-2 text-red-600 hover:bg-red-100 rounded-full transition" title="Reject"><X size={18} /></button>
+                                <button onClick={() => handleModerateQuestion(question._id, false)} className="p-2.5 text-red-600 bg-red-50 hover:bg-red-100 hover:scale-105 active:scale-95 rounded-xl transition-all shadow-sm" title="Reject"><X size={20} strokeWidth={3} /></button>
                               )}
                            </div>
-                           <span className={`text-xs px-3 py-1 rounded-full font-semibold ${question.isApproved ? "bg-emerald-100 text-emerald-700" : "bg-yellow-100 text-yellow-700"}`}>
+                           <span className={`text-xs px-3 py-1 rounded-full font-bold uppercase tracking-wider ${question.isApproved ? "bg-emerald-100 text-emerald-700 border border-emerald-200" : "bg-amber-100 text-amber-700 border border-amber-200"}`}>
                              {question.isApproved ? "Approved" : "Pending"}
                            </span>
                          </div>
                        </div>
                      ))}
-                     {event.questions.length === 0 && <p className="text-slate-500 text-center py-8">No questions asked yet.</p>}
+                     {event.questions.length === 0 && (
+                       <div className="text-center py-16 border-2 border-dashed border-slate-200 rounded-2xl">
+                         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                           <MessageSquare size={32} />
+                         </div>
+                         <p className="text-lg font-bold text-slate-600 mb-1">No questions asked yet</p>
+                         <p className="text-sm text-slate-400">Questions from your audience will appear here.</p>
+                       </div>
+                     )}
                    </div>
                  </div>
               </div>
            ) : activePoll ? (
-              <div className="h-full overflow-y-auto p-8">
-                 <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
-                    <div className="flex justify-between items-start mb-6">
-                      <h3 className="text-2xl font-bold text-slate-900">{activePoll.question}</h3>
+              <div className="h-full overflow-y-auto p-6 md:p-12 relative z-10">
+                 <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 md:p-10">
+                    <div className="flex justify-between items-start mb-10 border-b border-slate-100 pb-6">
+                      <h3 className="text-3xl font-extrabold text-slate-800 leading-tight pr-8">{activePoll.question}</h3>
                       <button
                         onClick={() => handleTogglePoll(activePoll._id, !activePoll.isActive)}
-                        className={`px-4 py-1.5 rounded-full text-sm font-semibold ${
-                          activePoll.isActive ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-700"
+                        className={`px-5 py-2 rounded-full text-sm font-bold uppercase tracking-wider shrink-0 transition-all border ${
+                          activePoll.isActive ? "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-sm" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
                         }`}
                       >
-                        {activePoll.isActive ? "Active" : "Inactive"}
+                        {activePoll.isActive ? "Live" : "Inactive"}
                       </button>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       {(activePoll.type === 'multiple-choice' || activePoll.type === 'quiz' || activePoll.type === 'ranking') && activePoll.options.map((option: string, idx: number) => {
                         let count = 0;
                         let percentage = 0;
                         
                         if (activePoll.type === 'ranking') {
-                           // For ranking, we just show options. A full scoring view could be added, but for now we just show basic count.
                            count = activePoll.responses.filter((r: any) => r.answer && r.answer.includes(option)).length;
                         } else {
                            count = activePoll.responses.filter((r: any) => r.answer === option).length;
@@ -1088,28 +1172,31 @@ export default function EventPage() {
 
                         return (
                           <div key={idx} className="relative pt-1">
-                            <div className="flex mb-2 items-center justify-between">
-                              <span className="text-sm font-semibold inline-block text-slate-700">
-                                {option} {activePoll.type === "quiz" && activePoll.correctAnswer === option && "✅"}
+                            <div className="flex mb-3 items-center justify-between">
+                              <span className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                {option} {activePoll.type === "quiz" && activePoll.correctAnswer === option && <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-0.5 rounded-full ml-2 uppercase tracking-wider">Correct</span>}
                               </span>
-                              <span className="text-sm font-semibold inline-block text-slate-700">
-                                {count} {activePoll.type !== 'ranking' && `(${percentage}%)`}
+                              <span className="text-lg font-extrabold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl">
+                                {count} {activePoll.type !== 'ranking' && <span className="text-emerald-700/60 text-sm ml-1">({percentage}%)</span>}
                               </span>
                             </div>
                             {activePoll.type !== 'ranking' && (
-                              <div className="overflow-hidden h-2 text-xs flex rounded bg-slate-100">
+                              <div className="overflow-hidden h-3 text-xs flex rounded-full bg-slate-100 relative">
                                 <div
                                   style={{ width: `${percentage}%` }}
-                                  className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500 transition-all duration-500"
-                                ></div>
+                                  className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-emerald-500 transition-all duration-1000 ease-out relative overflow-hidden rounded-full"
+                                >
+                                  {/* Shimmer effect */}
+                                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
+                                </div>
                               </div>
                             )}
                             {count > 0 && (
-                              <div className="mt-2 flex flex-wrap gap-2">
+                              <div className="mt-3 flex flex-wrap gap-2">
                                 {activePoll.responses
                                   .filter((r: any) => activePoll.type === 'ranking' ? (r.answer && r.answer.includes(option)) : r.answer === option)
                                   .map((r: any, i: number) => (
-                                    <span key={i} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full border border-slate-200" title={`Responded at ${new Date(r.timestamp).toLocaleTimeString()}`}>
+                                    <span key={i} className="text-xs bg-slate-100 text-slate-600 font-semibold px-2.5 py-1 rounded-full border border-slate-200" title={`Responded at ${new Date(r.timestamp).toLocaleTimeString()}`}>
                                       {r.userId}
                                     </span>
                                 ))}
@@ -1120,16 +1207,21 @@ export default function EventPage() {
                       })}
 
                       {(activePoll.type === 'open-text' || activePoll.type === 'word-cloud' || activePoll.type === 'rating' || activePoll.type === 'qna') && (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           {activePoll.responses.map((r: any, idx: number) => (
-                            <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-start">
-                              <p className="text-slate-800 font-medium text-lg break-words flex-1">{r.answer} {activePoll.type === 'rating' && '⭐'}</p>
-                              <span className="text-xs bg-white text-slate-500 px-3 py-1 rounded-full border border-slate-200 ml-4 shrink-0" title={`Responded at ${new Date(r.timestamp).toLocaleTimeString()}`}>
+                            <div key={idx} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex justify-between items-start gap-4 hover:shadow-md transition-shadow">
+                              <p className="text-slate-800 font-bold text-lg break-words flex-1">{r.answer} {activePoll.type === 'rating' && '⭐'}</p>
+                              <span className="text-xs bg-slate-100 font-bold text-slate-500 px-3 py-1.5 rounded-full ml-4 shrink-0" title={`Responded at ${new Date(r.timestamp).toLocaleTimeString()}`}>
                                 {r.userId}
                               </span>
                             </div>
                           ))}
-                          {activePoll.responses.length === 0 && <p className="text-slate-500 text-center py-4">No responses yet.</p>}
+                          {activePoll.responses.length === 0 && (
+                            <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl">
+                              <p className="text-lg font-bold text-slate-500">No responses yet</p>
+                              <p className="text-sm text-slate-400 mt-1">Waiting for participants to submit answers.</p>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import Image from 'next/image';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import {
   Plus,
@@ -14,11 +15,8 @@ import {
   ArrowRight,
   Trash2,
   Settings,
-  Home,
-  BarChart3,
-  MessageSquare,
-  Sparkles,
-  LayoutDashboard
+  MoreVertical,
+  Users
 } from 'lucide-react';
 
 interface Event {
@@ -73,7 +71,8 @@ export default function Dashboard() {
     }
   };
 
-  const handleDeleteEvent = async (id: string) => {
+  const handleDeleteEvent = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
     if (!confirm('Are you sure you want to delete this event?')) return;
     try {
       await api.delete(`/events/${id}`);
@@ -84,240 +83,209 @@ export default function Dashboard() {
     }
   };
 
-  const copyCode = (code: string) => {
+  const copyCode = (code: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
     navigator.clipboard.writeText(code);
     toast.success('Event code copied!');
   };
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-violet-200 border-t-violet-600"></div>
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-4 border-emerald-100 border-t-emerald-600 rounded-full animate-spin mb-4"></div>
+        <div className="text-slate-500 font-medium">Loading your events...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <Image
-                src="/sahbhagi_logo.png"
-                alt="Sahbhagi"
-                width={40}
-                height={40}
-                className="rounded-lg"
-              />
-              <span className="text-xl font-bold text-slate-900">
-                {user?.name}
+            <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition">
+              <div className="bg-white p-1 rounded-lg shadow-sm border border-slate-100">
+                <Image
+                  src="/sahbhagi_logo.png"
+                  alt="Sahbhagi"
+                  width={32}
+                  height={32}
+                  className="rounded"
+                />
+              </div>
+              <span className="text-xl font-extrabold text-slate-800 tracking-tight">
+                Sahbhagi
               </span>
-              <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded">
-                Upgrade
-              </span>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-slate-500 text-sm">
-                {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </span>
-              <span className="text-slate-500 text-sm font-mono">{Math.floor(Math.random() * 9000000) + 1000000}</span>
+            </Link>
+            
+            <div className="flex items-center gap-6">
               <button
-                onClick={() => toast.success('Public link copied!')}
-                className="px-4 py-2 border border-violet-500 text-violet-600 font-semibold rounded-lg hover:bg-violet-50 transition"
+                onClick={() => setIsModalOpen(true)}
+                className="hidden md:flex items-center gap-2 px-5 py-2 bg-emerald-600 text-white font-bold rounded-full hover:bg-emerald-700 transition shadow-sm"
               >
-                <div className="flex items-center gap-2">
-                  <span className="border-r border-violet-300 pr-2">Share</span>
-                  <span>Publish</span>
+                <Plus size={18} strokeWidth={3} />
+                New Event
+              </button>
+              
+              <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
+              
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm uppercase">
+                  {user?.name?.charAt(0)}
                 </div>
-              </button>
-              <button
-                onClick={() => toast.success('Present mode opening!')}
-                className="px-4 py-2 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition"
-              >
-                Present
-              </button>
+                <span className="font-semibold text-sm text-slate-700 hidden sm:block">{user?.name}</span>
+                <button
+                  onClick={() => {
+                    logout();
+                    router.push('/');
+                  }}
+                  className="p-2 text-slate-400 hover:text-red-500 transition rounded-full hover:bg-red-50"
+                  title="Log out"
+                >
+                  <LogOut size={18} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar */}
-          <div className="lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-2 sticky top-24">
-              <div className="flex gap-2 mb-4">
-                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-violet-600 text-white font-semibold rounded-lg hover:bg-violet-700 transition">
-                  <Plus size={18} /> Add
-                </button>
-                <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white text-slate-700 font-semibold rounded-lg border border-slate-300 hover:bg-slate-50 transition">
-                  <LayoutDashboard size={18} /> Templates
-                </button>
-              </div>
-              
-              <nav className="space-y-1">
-                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2">
-                  Audience Q&A
-                </div>
-                <button className="w-full flex items-center gap-3 px-3 py-3 bg-emerald-50 text-emerald-700 rounded-lg font-medium border border-emerald-200">
-                  <MessageSquare size={18} />
-                  <div className="text-left">
-                    <div className="text-sm">Add Q&A to collect questions from your audience</div>
-                    <div className="text-xs text-emerald-600 font-bold">Add</div>
-                  </div>
-                </button>
-              </nav>
-              
-              <div className="mt-8 px-3">
-                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                  Polls
-                </div>
-                <p className="text-sm text-slate-500">Your interactions will appear here</p>
-              </div>
-            </div>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+          <div>
+            <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Your Events</h1>
+            <p className="text-slate-500 font-medium">Manage your active events and create new ones.</p>
           </div>
-
-          {/* Main Content */}
-          <div className="flex-1">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900 mb-2">Your Events</h1>
-                <p className="text-slate-500">Manage your events and create new ones</p>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-violet-600 text-white font-semibold rounded-lg hover:bg-violet-700 transition shadow-sm"
-              >
-                <Plus size={20} />
-                Create event
-              </button>
-            </div>
-
-            {events.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
-                <Calendar className="w-16 h-16 text-slate-300 mx-auto mb-6" />
-                <h3 className="text-xl font-bold text-slate-900 mb-3">No events yet</h3>
-                <p className="text-lg text-slate-500 mb-8">Create your first event to get started</p>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="inline-flex items-center gap-2 px-8 py-4 bg-violet-600 text-white font-bold text-lg rounded-lg hover:bg-violet-700 transition"
-                >
-                  <Plus size={22} />
-                  Create event
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {events.map((event) => (
-                  <div
-                    key={event._id}
-                    className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition p-6"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between gap-4 mb-2">
-                          <div>
-                            <h3 className="text-lg font-bold text-slate-900">{event.title}</h3>
-                            {event.description && (
-                              <p className="text-slate-500 mt-1">{event.description}</p>
-                            )}
-                          </div>
-                          <button
-                            onClick={() => handleDeleteEvent(event._id)}
-                            className="text-slate-400 hover:text-red-600 transition p-1"
-                          >
-                            <Trash2 size={20} />
-                          </button>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-4 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Calendar size={16} className="text-slate-400" />
-                            <span className="text-slate-600">
-                              {new Date(event.createdAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full font-semibold text-sm">
-                              {event.code}
-                            </div>
-                            <button
-                              onClick={() => copyCode(event.code)}
-                              className="text-violet-600 hover:text-violet-700 font-semibold flex items-center gap-1"
-                            >
-                              <Copy size={14} />
-                              Copy
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => router.push(`/event/${event._id}`)}
-                        className="flex items-center gap-2 px-6 py-3 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-800 transition"
-                      >
-                        Open
-                        <ArrowRight size={18} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="md:hidden flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white font-bold rounded-full hover:bg-emerald-700 transition shadow-sm w-full sm:w-auto justify-center"
+          >
+            <Plus size={20} strokeWidth={3} />
+            New Event
+          </button>
         </div>
-      </div>
+
+        {events.length === 0 ? (
+          <div className="text-center py-32 bg-white rounded-[2rem] border border-slate-200 shadow-sm">
+            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Calendar className="w-10 h-10 text-emerald-500" />
+            </div>
+            <h3 className="text-2xl font-extrabold text-slate-900 mb-3">No events yet</h3>
+            <p className="text-lg text-slate-500 mb-8 max-w-sm mx-auto font-medium">Create your first event to start collecting live feedback and running polls.</p>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-600 text-white font-bold text-lg rounded-full hover:bg-emerald-700 transition shadow-lg shadow-emerald-600/20"
+            >
+              <Plus size={22} strokeWidth={3} />
+              Create your first event
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {events.map((event) => (
+              <div
+                key={event._id}
+                onClick={() => router.push(`/event/${event._id}`)}
+                className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:border-slate-300 transition-all cursor-pointer group flex flex-col h-[240px]"
+              >
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="bg-slate-100 text-slate-800 font-bold px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 font-mono tracking-widest border border-slate-200/50">
+                      <span className="text-slate-400">#</span>
+                      {event.code}
+                    </div>
+                    
+                    <button
+                      onClick={(e) => handleDeleteEvent(event._id, e)}
+                      className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition opacity-0 group-hover:opacity-100"
+                      title="Delete event"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-slate-900 mb-2 line-clamp-1 group-hover:text-emerald-600 transition-colors">{event.title}</h3>
+                  <p className="text-slate-500 text-sm line-clamp-2 font-medium flex-1">
+                    {event.description || "No description provided."}
+                  </p>
+                </div>
+                
+                <div className="p-6 border-t border-slate-50 bg-slate-50/50 rounded-b-3xl flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
+                    <Calendar size={14} />
+                    {new Date(event.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </div>
+                  <div className="flex items-center gap-2 text-emerald-600 font-bold text-sm">
+                    Open <ArrowRight size={16} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
 
       {/* Create Event Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8">
-            <h2 className="text-xl font-bold text-slate-900 mb-6">Create new event</h2>
-            <form onSubmit={handleCreateEvent} className="space-y-6">
-              <div>
-                <label htmlFor="title" className="block text-sm font-bold text-slate-800 mb-2">
-                  Event name
-                </label>
-                <input
-                  id="title"
-                  type="text"
-                  required
-                  value={newEvent.title}
-                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                  className="w-full px-5 py-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition text-lg"
-                  placeholder="e.g., Team Meeting"
-                />
-              </div>
-              <div>
-                <label htmlFor="description" className="block text-sm font-bold text-slate-800 mb-2">
-                  Description (optional)
-                </label>
-                <textarea
-                  id="description"
-                  value={newEvent.description}
-                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                  className="w-full px-5 py-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition text-lg"
-                  rows={3}
-                  placeholder="What's this event about?"
-                />
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-6 py-4 bg-white text-slate-700 font-semibold rounded-xl border border-slate-300 hover:bg-slate-50 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating}
-                  className="flex-1 px-6 py-4 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition disabled:opacity-50"
-                >
-                  {creating ? 'Creating...' : 'Create event'}
-                </button>
-              </div>
-            </form>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-[2rem] shadow-2xl max-w-md w-full overflow-hidden">
+            <div className="p-8 border-b border-slate-100 bg-slate-50">
+              <h2 className="text-2xl font-extrabold text-slate-900">Create new event</h2>
+              <p className="text-slate-500 font-medium mt-1">Setup your interaction space</p>
+            </div>
+            <div className="p-8">
+              <form onSubmit={handleCreateEvent} className="space-y-6">
+                <div>
+                  <label htmlFor="title" className="block text-sm font-bold text-slate-700 mb-2">
+                    Event name
+                  </label>
+                  <input
+                    id="title"
+                    type="text"
+                    required
+                    value={newEvent.title}
+                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition text-base font-semibold text-slate-800 placeholder-slate-400 outline-none"
+                    placeholder="e.g., Q3 Townhall"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="description" className="block text-sm font-bold text-slate-700 mb-2">
+                    Description <span className="text-slate-400 font-normal">(optional)</span>
+                  </label>
+                  <textarea
+                    id="description"
+                    value={newEvent.description}
+                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition text-base font-semibold text-slate-800 placeholder-slate-400 outline-none resize-none"
+                    rows={3}
+                    placeholder="What's this event about?"
+                  />
+                </div>
+                <div className="flex gap-4 pt-4 mt-8">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex-1 px-6 py-4 bg-slate-100 text-slate-700 font-bold rounded-2xl hover:bg-slate-200 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={creating}
+                    className="flex-1 px-6 py-4 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition disabled:opacity-50 shadow-lg shadow-emerald-600/20 flex items-center justify-center"
+                  >
+                    {creating ? (
+                      <div className="w-6 h-6 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    ) : (
+                      'Create event'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

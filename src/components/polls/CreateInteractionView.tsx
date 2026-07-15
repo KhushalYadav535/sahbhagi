@@ -30,6 +30,7 @@ export default function CreateInteractionView({ onClose, eventId, onSuccess }: C
   const [isGenerating, setIsGenerating] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [generatedPolls, setGeneratedPolls] = useState<any[]>([]);
+  const [previewPoll, setPreviewPoll] = useState<any | null>(null);
   
   const [newPoll, setNewPoll] = useState({
     question: "",
@@ -159,15 +160,16 @@ export default function CreateInteractionView({ onClose, eventId, onSuccess }: C
              <div className="bg-[#F8F9FE] -m-8 p-8 min-h-full rounded-b-2xl">
                 <div className="flex justify-between items-center mb-8 max-w-5xl mx-auto">
                   <div className="flex items-center gap-2 font-bold text-lg text-slate-800">
-                    Slido <span className="bg-violet-600 text-white text-xs px-2 py-0.5 rounded">AI</span>
+                    Sahbhagi <span className="bg-violet-600 text-white text-xs px-2 py-0.5 rounded">AI</span>
                   </div>
                   <div className="flex items-center gap-6 text-violet-600 font-medium text-sm">
                     <button className="flex items-center gap-1 hover:underline"><Edit2 size={14}/> Edit prompt</button>
-                    <button onClick={() => setGeneratedPolls([])} className="flex items-center gap-1 hover:underline">Minimize Slido AI <ArrowUpRight size={14}/></button>
+                    <button onClick={() => setGeneratedPolls([])} className="flex items-center gap-1 hover:underline">Minimize Sahbhagi AI <ArrowUpRight size={14}/></button>
                   </div>
                 </div>
 
-                <h4 className="text-center text-slate-600 mb-6 font-medium">Slido interactions tailored to your topic</h4>
+                <h4 className="text-center text-slate-600 mb-2 font-medium">Sahbhagi interactions tailored to your topic</h4>
+                <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Powered by Datatrack</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-5xl mx-auto">
                   {generatedPolls.map((poll, idx) => {
@@ -180,7 +182,7 @@ export default function CreateInteractionView({ onClose, eventId, onSuccess }: C
                                 {typeInfo.icon} {typeInfo.label}
                               </div>
                               <div className="flex items-center gap-4">
-                                <button className="text-violet-600 text-sm font-semibold hover:underline">Preview</button>
+                                <button onClick={() => setPreviewPoll(poll)} className="text-violet-600 text-sm font-semibold hover:underline">Preview</button>
                                 <button onClick={() => handleAddGeneratedPoll(poll, idx)} className="h-8 w-8 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center hover:bg-violet-200 transition">
                                   <Plus size={18}/>
                                 </button>
@@ -207,55 +209,76 @@ export default function CreateInteractionView({ onClose, eventId, onSuccess }: C
 
           {view === "grid" && generatedPolls.length === 0 && (
             <div className="space-y-8 max-w-5xl mx-auto">
-              {/* AI Banner */}
-              <div className="bg-gradient-to-r from-violet-50 to-indigo-50 border border-violet-200 rounded-xl p-6 flex items-start gap-4">
-                <div className="bg-white p-3 rounded-lg text-violet-600 shadow-sm">
-                  <Sparkles size={24} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-bold text-violet-900 mb-2">
-                    Generate with Slido <span className="bg-violet-600 text-white text-xs px-2 py-0.5 rounded ml-2">AI</span>
-                  </h3>
-                  <div className="flex gap-3 mt-4">
-                    <input
-                      type="text"
-                      value={aiPrompt}
-                      onChange={(e) => setAiPrompt(e.target.value)}
-                      placeholder="I'm hosting a team meeting..."
-                      className="flex-1 px-5 py-4 bg-white border border-violet-300 rounded-xl text-slate-900 placeholder-slate-500 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition text-lg"
-                    />
-                    <button
-                      onClick={handleGeneratePolls}
-                      disabled={isGenerating || !aiPrompt}
-                      className="px-6 py-4 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      {isGenerating ? "Generating..." : "Generate"}
-                      <Sparkles size={18} />
-                    </button>
-                  </div>
-                </div>
-              </div>
+              {isGenerating ? (
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-16 flex flex-col items-center justify-center min-h-[400px]">
+                   <div className="relative mb-8">
+                     <div className="absolute inset-0 bg-violet-400 blur-xl opacity-50 rounded-full animate-pulse"></div>
+                     <div className="w-24 h-24 bg-gradient-to-tr from-violet-600 to-indigo-500 rounded-3xl shadow-xl flex items-center justify-center animate-bounce relative z-10">
+                       <Sparkles size={48} className="text-white" />
+                     </div>
+                   </div>
+                   <h3 className="text-2xl font-extrabold text-slate-800 mb-3 text-center">Generating Interactions...</h3>
+                   <p className="text-slate-500 font-medium mb-8 text-center max-w-sm">Sahbhagi AI is crafting the perfect questions tailored for your topic.</p>
+                   
+                   <div className="w-64 h-2 bg-slate-100 rounded-full overflow-hidden mb-8">
+                     <div className="w-full h-full bg-violet-500 rounded-full animate-[shimmer_1.5s_infinite] -translate-x-full" style={{ backgroundImage: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }}></div>
+                   </div>
 
-              {/* Grid of Poll Types */}
-              <div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {pollTypes.map((pt) => (
-                    <button
-                      key={pt.type}
-                      onClick={() => selectType(pt.type as PollType)}
-                      className="group flex flex-col items-start gap-4 p-6 bg-white border-2 border-slate-200 rounded-xl hover:border-violet-400 hover:shadow-md transition-all"
-                    >
-                      <div className="p-3 bg-slate-100 rounded-lg group-hover:bg-violet-100 group-hover:scale-110 transition-all">
-                        {pt.icon}
-                      </div>
-                      <div className="text-left">
-                        <span className="font-semibold text-slate-800">{pt.label}</span>
-                        {pt.description && <p className="text-xs text-slate-500 mt-1">{pt.description}</p>}
-                      </div>
-                    </button>
-                  ))}
+                   <p className="mt-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Powered by Datatrack</p>
                 </div>
-              </div>
+              ) : (
+                <>
+                  {/* AI Banner */}
+                  <div className="bg-gradient-to-r from-violet-50 to-indigo-50 border border-violet-200 rounded-xl p-6 flex items-start gap-4">
+                    <div className="bg-white p-3 rounded-lg text-violet-600 shadow-sm">
+                      <Sparkles size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-base font-bold text-violet-900 mb-1">
+                        Generate with Sahbhagi <span className="bg-violet-600 text-white text-xs px-2 py-0.5 rounded ml-2">AI</span>
+                      </h3>
+                      <p className="text-[10px] font-bold text-violet-400 uppercase tracking-widest mb-2">Powered by Datatrack</p>
+                      <div className="flex gap-3 mt-4">
+                        <input
+                          type="text"
+                          value={aiPrompt}
+                          onChange={(e) => setAiPrompt(e.target.value)}
+                          placeholder="I'm hosting a team meeting..."
+                          className="flex-1 px-5 py-4 bg-white border border-violet-300 rounded-xl text-slate-900 placeholder-slate-500 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none transition text-lg"
+                        />
+                        <button
+                          onClick={handleGeneratePolls}
+                          disabled={!aiPrompt}
+                          className="px-6 py-4 bg-violet-600 text-white font-semibold rounded-xl hover:bg-violet-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          Generate <Sparkles size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Grid of Poll Types */}
+                  <div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {pollTypes.map((pt) => (
+                        <button
+                          key={pt.type}
+                          onClick={() => selectType(pt.type as PollType)}
+                          className="group flex flex-col items-start gap-4 p-6 bg-white border-2 border-slate-200 rounded-xl hover:border-violet-400 hover:shadow-md transition-all"
+                        >
+                          <div className="p-3 bg-slate-100 rounded-lg group-hover:bg-violet-100 group-hover:scale-110 transition-all">
+                            {pt.icon}
+                          </div>
+                          <div className="text-left">
+                            <span className="font-semibold text-slate-800">{pt.label}</span>
+                            {pt.description && <p className="text-xs text-slate-500 mt-1">{pt.description}</p>}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -390,6 +413,41 @@ export default function CreateInteractionView({ onClose, eventId, onSuccess }: C
                 </button>
               </div>
             </form>
+          )}
+
+          {/* Preview Modal */}
+          {previewPoll && (
+            <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden flex flex-col">
+                <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                  <h3 className="font-bold text-slate-800">Interaction Preview</h3>
+                  <button onClick={() => setPreviewPoll(null)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition">
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="p-8">
+                  <h2 className="text-2xl font-extrabold text-slate-900 mb-6">{previewPoll.question}</h2>
+                  {(previewPoll.type === 'multiple-choice' || previewPoll.type === 'quiz' || previewPoll.type === 'ranking') ? (
+                    <div className="space-y-3">
+                      {previewPoll.options?.map((opt: string, i: number) => (
+                        <div key={i} className="p-4 border-2 border-slate-200 rounded-xl font-bold text-slate-700 bg-slate-50">
+                          {opt}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-6 border-2 border-dashed border-slate-300 rounded-xl text-center bg-slate-50 text-slate-500 font-medium">
+                      Participants will be able to type their answers here.
+                    </div>
+                  )}
+                </div>
+                <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
+                  <button onClick={() => setPreviewPoll(null)} className="px-6 py-2.5 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-900 transition">
+                    Close Preview
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>

@@ -49,7 +49,7 @@ export default function PresentPage() {
 
   if (!event) return (
     <div className="h-screen bg-slate-50 flex flex-col items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-100 border-t-emerald-600"></div>
     </div>
   );
 
@@ -58,42 +58,53 @@ export default function PresentPage() {
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(joinUrl)}`;
 
   return (
-    <div className="h-screen bg-slate-50 text-slate-900 overflow-hidden flex font-sans">
+    <div className="h-screen bg-slate-50 text-slate-900 overflow-hidden flex font-sans selection:bg-emerald-100">
       
       {/* LEFT PANEL: Join Info & QR Code */}
-      <div className="w-[30%] min-w-[350px] border-r border-slate-200 flex flex-col p-10 bg-white shadow-xl z-10 shrink-0">
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <h2 className="text-2xl font-bold text-slate-800 mb-8 text-center tracking-wide">Join the conversation</h2>
+      <div className="w-[30%] min-w-[320px] max-w-[400px] border-r border-slate-200 flex flex-col p-10 bg-white shadow-xl z-20 shrink-0 overflow-y-auto">
+        <div className="flex-1 flex flex-col items-center justify-center min-h-min py-4">
+          <h2 className="text-2xl font-bold text-slate-800 mb-8 text-center tracking-wide">Join at</h2>
           
-          <div className="bg-white p-4 rounded-3xl shadow-xl border border-slate-100 mb-8">
-            <img src={qrUrl} alt="Join QR Code" className="w-48 h-48 sm:w-64 sm:h-64 object-contain" />
+          <div className="text-center mb-8">
+            <div className="inline-block bg-emerald-50 border border-emerald-100 text-emerald-700 px-6 py-3 rounded-2xl text-3xl font-bold tracking-wider font-mono mb-4 shadow-sm">
+              sahbhagi.app
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-xl mb-8 transform hover:scale-105 transition-transform duration-500">
+            <img src={qrUrl} alt="Join QR Code" className="w-48 h-48 sm:w-56 sm:h-56 object-contain" />
           </div>
 
           <div className="text-center">
-            <p className="text-slate-600 text-lg mb-2">Join at <span className="text-green-700 font-mono font-bold tracking-wider bg-green-100 px-2 py-0.5 rounded">sahbhagi.app</span></p>
-            <p className="text-slate-500 text-base mb-1">with code</p>
-            <div className="text-5xl font-extrabold tracking-widest text-slate-900">
-              #{event.code}
+            <p className="text-slate-500 text-lg mb-2 font-medium">with code</p>
+            <div className="text-5xl sm:text-6xl font-extrabold tracking-widest text-slate-900 drop-shadow-sm">
+              <span className="text-emerald-500">#</span>{event.code}
             </div>
           </div>
         </div>
 
-        <div className="mt-auto flex justify-between items-center text-slate-500 pt-8 border-t border-slate-200">
-           <span className="font-semibold text-slate-700">{event.title}</span>
-           <button onClick={() => document.documentElement.requestFullscreen()} className="hover:text-slate-900 transition p-2 bg-slate-100 rounded-full hover:bg-slate-200 text-slate-500">
+        <div className="mt-auto flex justify-between items-center text-slate-500 pt-8 border-t border-slate-100">
+           <span className="font-bold text-slate-700 truncate pr-4">{event.title}</span>
+           <button onClick={() => document.documentElement.requestFullscreen()} className="hover:text-slate-900 transition p-3 bg-slate-50 rounded-full hover:bg-slate-100 border border-slate-200">
              <Maximize size={20} />
            </button>
         </div>
       </div>
 
       {/* RIGHT PANEL: Main Stage */}
-      <div className="flex-1 relative flex flex-col p-12 overflow-y-auto">
+      <div className="flex-1 relative flex flex-col p-8 sm:p-16 overflow-y-auto bg-slate-50 z-10">
+        {/* Background elements */}
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-emerald-200/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-cyan-200/20 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
+
         {activePolls.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center min-h-full">
-            <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center mb-8 animate-pulse shadow-inner">
-              <MessageSquare size={40} className="text-slate-400" />
+          <div className="flex-1 flex flex-col items-center justify-center relative z-10 my-auto">
+            <div className="relative mb-8">
+              <div className="w-32 h-32 rounded-[2.5rem] bg-white border border-slate-200 flex items-center justify-center animate-pulse shadow-xl">
+                <MessageSquare size={48} className="text-slate-300" />
+              </div>
             </div>
-            <h2 className="text-3xl font-semibold text-slate-500 text-center max-w-lg leading-relaxed">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-400 text-center max-w-lg leading-relaxed">
               Waiting for the host to launch an interaction...
             </h2>
           </div>
@@ -101,39 +112,45 @@ export default function PresentPage() {
           activePolls.map((poll: any) => {
             const totalVotes = poll.responses ? poll.responses.length : 0;
             return (
-              <div key={poll._id} className="flex-1 flex flex-col w-full max-w-6xl mx-auto min-h-full shrink-0 pb-20 animate-in fade-in zoom-in-95 duration-500">
+              <div key={poll._id} className="w-full max-w-6xl mx-auto flex flex-col shrink-0 animate-in fade-in zoom-in-95 duration-700 relative z-10 mb-20 last:mb-0">
                 
                 {/* Poll Header */}
-                <div className="mb-12 text-center pt-8">
-                  <h1 className="text-5xl md:text-6xl font-bold leading-tight text-slate-900">
+                <div className="mb-6 text-center pt-6 shrink-0 flex flex-col items-center">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold leading-tight text-slate-900 tracking-tight drop-shadow-sm max-w-4xl mx-auto break-words">
                     {poll.question}
                   </h1>
-                  <p className="text-slate-500 text-xl mt-6 font-medium tracking-wide">
-                    {totalVotes} {totalVotes === 1 ? 'vote' : 'votes'}
-                  </p>
+                  <div className="mt-4 inline-flex items-center gap-2 bg-white border border-slate-200 px-3 py-1 rounded-full shadow-sm">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    </span>
+                    <p className="text-slate-600 text-xs font-semibold tracking-wide">
+                      {totalVotes} {totalVotes === 1 ? 'vote' : 'votes'}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Poll Visualizations */}
-                <div className="flex-1 flex flex-col justify-center h-full w-full">
+                <div className="flex flex-col items-center w-full relative flex-1">
                   {poll.type === 'multiple-choice' && (
-                    <div className="flex-1 flex flex-col justify-center w-full max-w-4xl mx-auto space-y-6">
+                    <div className="w-full max-w-3xl flex flex-col gap-3">
                       {poll.options.map((opt: string, idx: number) => {
                         const count = poll.responses.filter((r: any) => r.answer === opt).length;
                         const percentage = totalVotes === 0 ? 0 : Math.round((count / totalVotes) * 100);
                         return (
-                          <div key={idx} className="relative h-20 w-full flex items-center bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
+                          <div key={idx} className="relative h-12 sm:h-14 w-full flex items-center bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm group shrink-0">
                             {/* Animated Background Bar */}
                             <div 
-                              className="absolute top-0 left-0 bottom-0 bg-gradient-to-r from-green-500 to-emerald-400 rounded-2xl transition-all duration-[800ms] ease-out shadow-[0_0_15px_rgba(34,197,94,0.3)]" 
+                              className="absolute top-0 left-0 bottom-0 bg-emerald-100 transition-all duration-[1000ms] ease-out border-r-[3px] border-emerald-400 opacity-90" 
                               style={{ width: `${percentage}%` }}
                             ></div>
                             
                             {/* Content Overlays */}
-                            <div className="relative z-10 flex justify-between items-center w-full px-8 font-semibold text-2xl tracking-wide">
-                              <span className="text-slate-800 truncate pr-4">{opt}</span>
-                              <div className="flex items-center gap-6 shrink-0">
-                                <span className="text-slate-600 text-xl font-mono">{count}</span>
-                                <span className="text-slate-800 w-16 text-right font-bold">{percentage}%</span>
+                            <div className="relative z-10 flex justify-between items-center w-full px-4 sm:px-6 font-medium text-base sm:text-lg tracking-wide gap-4">
+                              <span className="text-slate-800 drop-shadow-sm truncate flex-1">{opt}</span>
+                              <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                                <span className="text-slate-500 text-sm sm:text-base font-mono">{count}</span>
+                                <span className="text-slate-900 w-12 sm:w-14 text-right font-bold text-lg sm:text-xl">{percentage}%</span>
                               </div>
                             </div>
                           </div>
@@ -143,7 +160,7 @@ export default function PresentPage() {
                   )}
 
                   {poll.type === 'word-cloud' && (
-                    <div className="flex-1 w-full h-full min-h-[400px] flex items-center justify-center p-8 bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+                    <div className="w-full min-h-[500px] flex items-center justify-center p-12 bg-white rounded-[3rem] border border-slate-200 shadow-xl overflow-hidden mb-12">
                       <WordCloud words={(() => {
                         const counts: Record<string, number> = {};
                         poll.responses.forEach((r: any) => {
@@ -156,30 +173,37 @@ export default function PresentPage() {
                   )}
 
                   {poll.type === 'quiz' && (
-                    <div className="flex-1 flex flex-col items-center justify-center">
-                      <div className="text-3xl mb-12 text-slate-600">
-                        Correct Answer: <span className="font-bold text-green-600 text-4xl ml-3">{poll.correctAnswer}</span>
+                    <div className="w-full flex flex-col items-center justify-center pb-12">
+                      <div className="text-4xl mb-12 text-slate-500 font-bold">
+                        Correct Answer: <span className="font-extrabold text-emerald-600 text-5xl ml-4 tracking-wide">{poll.correctAnswer}</span>
                       </div>
-                      <div className="w-full max-w-2xl bg-white rounded-3xl p-10 border border-slate-200 shadow-xl">
-                        <h4 className="text-2xl font-bold mb-8 text-center text-slate-800 tracking-wide">Fastest Correct Answers</h4>
-                        <div className="space-y-4">
+                      <div className="w-full max-w-3xl bg-white rounded-[3rem] p-12 border border-slate-200 shadow-xl">
+                        <h4 className="text-3xl font-extrabold mb-10 text-center text-slate-900 tracking-wide">Fastest Correct Answers</h4>
+                        <div className="space-y-5">
                           {poll.responses
                             .filter((r: any) => r.answer === poll.correctAnswer)
                             .sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
                             .slice(0, 5)
                             .map((r: any, idx: number) => (
-                              <div key={idx} className="flex justify-between items-center bg-slate-50 p-5 rounded-2xl border border-slate-100 text-xl font-medium">
-                                <div className="flex items-center gap-4">
-                                  <span className="w-8 h-8 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-sm font-bold">{idx + 1}</span>
+                              <div key={idx} className="flex justify-between items-center bg-slate-50 p-6 rounded-2xl border border-slate-100 text-2xl font-bold">
+                                <div className="flex items-center gap-5">
+                                  <span className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold ${
+                                    idx === 0 ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                    idx === 1 ? 'bg-slate-200 text-slate-700 border border-slate-300' :
+                                    idx === 2 ? 'bg-orange-100 text-orange-700 border border-orange-200' :
+                                    'bg-slate-100 text-slate-500'
+                                  }`}>
+                                    {idx + 1}
+                                  </span>
                                   <span className="text-slate-800">{r.userId}</span>
                                 </div>
-                                <span className="text-green-600 font-mono font-bold">
+                                <span className="text-emerald-600 font-mono font-bold tracking-wider">
                                   {poll.startTime ? `${((new Date(r.timestamp).getTime() - new Date(poll.startTime).getTime()) / 1000).toFixed(1)}s` : ''}
                                 </span>
                               </div>
                             ))}
                           {poll.responses.filter((r: any) => r.answer === poll.correctAnswer).length === 0 && (
-                            <p className="text-center text-slate-500 py-6 text-lg">No correct answers yet.</p>
+                            <p className="text-center text-slate-500 py-10 text-xl font-medium">No correct answers yet.</p>
                           )}
                         </div>
                       </div>
@@ -187,29 +211,29 @@ export default function PresentPage() {
                   )}
 
                   {poll.type === 'qna' && (
-                    <div className="flex-1 flex flex-col items-center justify-center">
-                      <h2 className="text-3xl text-slate-500">Please switch to the Q&A tab on your device to submit questions.</h2>
+                    <div className="w-full flex flex-col items-center justify-center pb-12">
+                      <h2 className="text-4xl font-bold text-slate-400 text-center">Please switch to the Q&A tab on your device to submit questions.</h2>
                     </div>
                   )}
 
                   {poll.type === 'open-text' && (
-                    <div className="flex-1 flex flex-wrap content-start items-start justify-center gap-4 p-8 w-full max-w-6xl mx-auto h-full overflow-y-auto">
+                    <div className="w-full flex flex-wrap content-start items-start justify-center gap-6 pb-12">
                       {poll.responses.map((r: any, idx: number) => (
-                        <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-md text-2xl font-medium text-slate-800 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-xl break-words">
+                        <div key={idx} className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-md text-3xl font-bold text-slate-800 animate-in fade-in slide-in-from-bottom-8 duration-700 max-w-2xl break-words">
                           {r.answer}
                         </div>
                       ))}
                       {poll.responses.length === 0 && (
-                        <div className="w-full text-center text-slate-500 text-2xl mt-20">Waiting for responses...</div>
+                        <div className="w-full text-center text-slate-400 text-3xl mt-20 font-bold">Waiting for responses...</div>
                       )}
                     </div>
                   )}
 
                   {(poll.type === 'rating' || poll.type === 'ranking') && (
-                    <div className="flex-1 flex flex-col items-center justify-center">
-                      <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md text-center max-w-2xl">
-                         <h3 className="text-2xl font-semibold text-slate-800 mb-4">Responses are coming in!</h3>
-                         <p className="text-slate-600 text-lg">Check your device to participate. Full results view for this interaction type will be available soon.</p>
+                    <div className="w-full flex flex-col items-center justify-center pb-12">
+                      <div className="bg-white p-12 rounded-[3rem] border border-slate-200 shadow-xl text-center max-w-3xl">
+                         <h3 className="text-4xl font-extrabold text-slate-900 mb-6">Responses are coming in!</h3>
+                         <p className="text-slate-500 text-2xl leading-relaxed font-medium">Check your device to participate. Full results view for this interaction type will be available soon.</p>
                       </div>
                     </div>
                   )}

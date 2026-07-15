@@ -50,18 +50,18 @@ export default function Home() {
                 Sahbhagi
               </span>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => router.push('/login')}
-                className="px-5 py-2 text-slate-700 font-medium hover:text-emerald-600 transition"
+                className="px-5 py-2.5 text-slate-700 font-bold hover:bg-slate-100 rounded-full transition"
               >
                 Log in
               </button>
               <button
                 onClick={() => router.push('/register')}
-                className="px-5 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 transition"
+                className="px-6 py-2.5 bg-slate-900 text-white font-bold rounded-full hover:bg-slate-800 transition shadow-sm"
               >
-                Sign up free
+                Sign up
               </button>
             </div>
           </div>
@@ -69,49 +69,79 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-20 pb-32 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 mb-6 leading-tight">
-            Make every meeting
-            <br />
-            <span className="text-emerald-600">interactive</span>
+      <section className="pt-24 pb-32 px-4 relative overflow-hidden">
+        {/* Abstract background shapes */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] opacity-30 pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
+          <div className="absolute top-20 right-10 w-72 h-72 bg-cyan-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-72 h-72 bg-violet-300 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
+        </div>
+
+        <div className="max-w-5xl mx-auto text-center relative z-10">
+          <h1 className="text-6xl md:text-7xl lg:text-[80px] font-extrabold text-slate-900 mb-8 leading-[1.1] tracking-tight">
+            Your audience is <br />
+            <span className="text-emerald-600">listening.</span> Engage them.
           </h1>
-          <p className="text-xl md:text-2xl text-slate-600 mb-10 max-w-3xl mx-auto leading-relaxed">
-            Collect live poll responses, crowd-sourced questions, and feedback with Sahbhagi — the easiest way to engage your audience.
+          <p className="text-xl md:text-2xl text-slate-600 mb-12 max-w-2xl mx-auto leading-relaxed font-medium">
+            Collect live questions, run interactive polls, and brainstorm ideas with Sahbhagi.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <button
-              onClick={() => router.push('/register')}
-              className="group flex items-center gap-3 px-10 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg hover:bg-emerald-700 transition shadow-lg hover:shadow-emerald-200"
+          
+          {/* Join Input Box */}
+          <div className="max-w-2xl mx-auto bg-white p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col sm:flex-row gap-3 mb-16 relative hover:shadow-2xl hover:shadow-slate-200/80 transition-shadow duration-300">
+            <div className="flex-1 relative">
+              <div className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-2xl select-none">#</div>
+              <input 
+                type="text" 
+                placeholder="Enter event code" 
+                className="w-full h-16 pl-14 pr-6 bg-slate-50 border-none rounded-xl text-2xl font-bold text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500 outline-none uppercase tracking-wider"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value) {
+                    router.push(`/join?code=${e.currentTarget.value}`);
+                  }
+                }}
+              />
+            </div>
+            <button 
+              className="h-16 px-10 bg-emerald-600 text-white font-extrabold text-lg rounded-xl hover:bg-emerald-700 transition flex items-center justify-center gap-2 group shrink-0"
+              onClick={(e) => {
+                const input = e.currentTarget.previousElementSibling?.querySelector('input');
+                if (input?.value) {
+                  router.push(`/join?code=${input.value}`);
+                } else {
+                  router.push('/join');
+                }
+              }}
             >
-              Get started for free
-              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-            </button>
-            <button
-              onClick={() => router.push('/join')}
-              className="px-10 py-4 bg-white text-slate-800 font-bold text-lg rounded-lg border border-slate-300 hover:border-emerald-300 hover:bg-emerald-50 transition"
-            >
-              Join an event
+              Join
+              <ArrowRight size={20} strokeWidth={3} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>
+
+          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Or create your own</p>
+          <button
+            onClick={() => router.push('/register')}
+            className="px-8 py-3 bg-white text-slate-800 font-bold text-base rounded-full border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition shadow-sm"
+          >
+            Get started for free
+          </button>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-24 px-4 bg-slate-50">
+      <section className="py-32 px-4 bg-slate-50 border-t border-slate-100">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-slate-900 mb-4">Everything you need to engage</h2>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">All the tools to make your meetings, classes, and events interactive.</p>
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">Everything you need to engage</h2>
+            <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">All the tools to make your meetings, classes, and events unforgettably interactive.</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, idx) => (
-              <div key={idx} className="bg-white p-8 rounded-xl border border-slate-200 hover:border-emerald-300 hover:shadow-lg transition-all">
-                <div className="w-12 h-12 bg-emerald-50 rounded-lg flex items-center justify-center mb-6">
+              <div key={idx} className="bg-white p-10 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300 group">
+                <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300">
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">{feature.title}</h3>
-                <p className="text-slate-600">{feature.description}</p>
+                <h3 className="text-2xl font-bold text-slate-800 mb-4">{feature.title}</h3>
+                <p className="text-slate-500 font-medium leading-relaxed">{feature.description}</p>
               </div>
             ))}
           </div>
@@ -119,15 +149,17 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-extrabold text-slate-900 mb-6">Ready to get started?</h2>
-          <p className="text-xl text-slate-600 mb-10">Join thousands of people making their meetings more interactive with Sahbhagi.</p>
+      <section className="py-32 px-4 bg-emerald-600 text-white text-center relative overflow-hidden">
+        {/* Subtle pattern background for CTA */}
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+        <div className="max-w-4xl mx-auto relative z-10">
+          <h2 className="text-5xl md:text-6xl font-extrabold mb-8 tracking-tight">Ready to get started?</h2>
+          <p className="text-xl md:text-2xl text-emerald-100 mb-12 font-medium max-w-2xl mx-auto leading-relaxed">Join thousands of people making their meetings more interactive with Sahbhagi.</p>
           <button
             onClick={() => router.push('/register')}
-            className="px-10 py-4 bg-emerald-600 text-white font-bold text-lg rounded-lg hover:bg-emerald-700 transition shadow-lg"
+            className="px-12 py-5 bg-white text-emerald-700 font-extrabold text-xl rounded-full hover:bg-emerald-50 hover:scale-105 transition-all shadow-xl shadow-emerald-900/20"
           >
-            Sign up free
+            Sign up for free
           </button>
         </div>
       </section>
